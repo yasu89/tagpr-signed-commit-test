@@ -1,0 +1,37 @@
+name: tagpr
+on:
+  push:
+    branches: ["main"]
+jobs:
+  tagpr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: 'yasu89/tagpr'
+          ref: 'feature/verified-commit'
+          path: 'tagpr'
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22.0'
+      - name: Build binary
+        run: |
+          cd tagpr
+          go build -o "$RUNNER_TEMP/tagpr" ./cmd/tagpr/main.go
+      - uses: actions/checkout@v4
+        with:
+          path: 'github-api-commit'
+      - name: run tagpr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd github-api-commit
+          ls -la
+          PATH=$RUNNER_TEMP:$PATH
+          echo "PATH: $PATH"
+          tagpr
